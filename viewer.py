@@ -4,6 +4,11 @@ from Bio.PDB.PDBParser import PDBParser
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
+from vispy import gloo
+from vispy import app
+from vispy.util.transforms import perspective, translate, rotate
+from vispy.io import load_data_file
+
 
 class Viewer(object):
     def __init__(self, pdb_file_name):
@@ -59,3 +64,4 @@ class Viewer2D(Viewer):
             ys = coordinates[...,1]
             zs = coordinates[...,2]
             ax.scatter(xs, ys, zs, c=cpk_color, marker='o')
+
