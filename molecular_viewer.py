@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# vispy: gallery 30
-# -----------------------------------------------------------------------------
+# Code based on VisPy gallery 30:
 # 2014, Aurore Deschildre, Gael Goret, Cyrille Rossant, Nicolas P. Rougier.
-# Distributed under the terms of the new BSD License.
-# -----------------------------------------------------------------------------
+
 import numpy as np
 import sys
 from vispy import gloo
@@ -12,30 +10,30 @@ from vispy.util.transforms import perspective, translate, rotate
 from vispy.io import load_data_file
 from Bio.PDB.PDBParser import PDBParser
 
-"""
-White = Color(1.0, 1.0, 1.0)
-Black = Color(0.0, 0.0, 0.0)
-Carbon = Color(0.17, 0.17, 0.18)
-Red = Color(0.95, 0.03, 0.01)
-Blue = Color(0.01, 0.03, 0.95)
-Sky = Color(0.233, 0.686, 1.0)
-Yellow = Color(1.0, 1.0, 0.0)
-Green = Color(0.0, 0.53, 0.0)
-Pink = Color(0.53, 0.12, 0.36)
-DarkRed = Color(0.59, 0.13, 0.0)
-Violet = Color(0.46, 0.0, 1.0)
-DarkViolet = Color(0.39, 0.0, 0.73)
-Cyan = Color(0.0, 1.0, 1.0)
-Orange = Color(1.0, 0.59, 0.0)
-Peach = Color(1.0, 0.66, 0.46)
-DarkGreen = Color(0.0, 0.46, 0.0)
-Gray = Color(0.59, 0.59, 0.59)
-DarkOrange = Color(0.86, 0.46, 0.0)
-"""
+# Some common colors
+white = np.array([1.0, 1.0, 1.0])
+black = np.array([0.0, 0.0, 0.0])
+carbon = np.array([0.17, 0.17, 0.18])
+red = np.array([0.95, 0.03, 0.01])
+blue = np.array([0.01, 0.03, 0.95])
+sky = np.array([0.233, 0.686, 1.0])
+yellow = np.array([0.95, 0.95, 0.0])
+green = np.array([0.0, 0.53, 0.0])
+pink = np.array([0.53, 0.12, 0.36])
+darkRed = np.array([0.59, 0.13, 0.0])
+violet = np.array([0.46, 0.0, 1.0])
+darkviolet = np.array([0.39, 0.0, 0.73])
+cyan = np.array([0.0, 1.0, 1.0])
+orange = np.array([1.0, 0.59, 0.0])
+peach = np.array([1.0, 0.66, 0.46])
+darkGreen = np.array([0.0, 0.46, 0.0])
+gray = np.array([0.59, 0.59, 0.59])
+darkorange = np.array([0.86, 0.46, 0.0])
+golden = np.array([0.75, 0.625, 0.38])
 
-atom_colors = {'H':np.array([1.0, 1.0, 1.0]), 'C':np.array([0.17, 0.17, 0.18]), 'N':np.array([0.233, 0.686, 1.0]),
-               'O':np.array([0.95, 0.03, 0.01]), 'S':np.array([0.95, 0.95, 0.00]), 'AU':np.array([0.75, 0.625, 0.38])}
-
+# Atom colors
+atom_colors = {'H':white, 'C':carbon, 'N':sky, 'O':red, 'S':yellow, 'AU':golden}
+# Atom VdW radii
 vdw_radius = {'C':1.9080, 'N':1.8240, 'O':1.6612, 'S':2.0000, 'AU':1.37, 'H':1.0}
 
 vertex = """
@@ -66,8 +64,6 @@ void main (void) {
 
     gl_Position = u_projection * v_eye_position;
 
-    // stackoverflow.com/questions/8608844/...
-    //  ... resizing-point-sprites-based-on-distance-from-the-camera
     vec4  proj_corner = u_projection * vec4(a_radius, a_radius, v_eye_position.z, v_eye_position.w);  // # noqa
     gl_PointSize = 512.0 * proj_corner.x / proj_corner.w;
 }
@@ -88,7 +84,6 @@ varying float v_radius;
 varying vec3  v_light_direction;
 void main()
 {
-    // r^2 = (x - x0)^2 + (y - y0)^2 + (z - z0)^2
     vec2 texcoord = gl_PointCoord* 2.0 - vec2(1.0);
     float x = texcoord.x;
     float y = texcoord.y;
@@ -144,7 +139,7 @@ class Canvas(app.Canvas):
         self.num_models = len(self.structure)
         self.model_colors = generate_colors_for_models(self.num_models)
 
-        self.atoms = [atom for atom in self.structure.get_atoms()] #if atom.get_name() == 'CA']
+        self.atoms = [atom for atom in self.structure.get_atoms()] 
         self.coordinates = np.array([atom.coord for atom in self.atoms])
         self.center = centroid(self.coordinates)
         self.coordinates -= self.center
@@ -154,7 +149,6 @@ class Canvas(app.Canvas):
         self.model = np.eye(4, dtype=np.float32)
         self.projection = np.eye(4, dtype=np.float32)
         self.mode = mode
-
 
         self.apply_zoom()
 
@@ -218,24 +212,27 @@ class Canvas(app.Canvas):
                 self.timer.start()
         if event.text == 'a':
             self.theta += 5.0
-            self.model = np.dot(rotate(self.theta, (0, 0, 1)),
-                            rotate(self.phi, (0, 1, 0)))
-            self.program['u_model'] = self.model
-            self.update()
+            self.rotate_molecule()
         if event.text == 's':
             self.theta -= 5.0
-            self.model = np.dot(rotate(self.theta, (0, 0, 1)),
-                            rotate(self.phi, (0, 1, 0)))
-            self.program['u_model'] = self.model
-            self.update()
+            self.rotate_molecule()
+        if event.text == 'q':
+            self.phi += 5.0
+            self.rotate_molecule()
+        if event.text == 'w':
+            self.phi -= 5.0
+            self.rotate_molecule()
 
-    def on_timer(self, event):
-        self.theta += .25
-        self.phi += .25
+    def rotate_molecule(self):
         self.model = np.dot(rotate(self.theta, (0, 0, 1)),
                             rotate(self.phi, (0, 1, 0)))
         self.program['u_model'] = self.model
         self.update()
+
+    def on_timer(self, event):
+        #self.theta += .25
+        self.phi += .25
+        self.rotate_molecule()
 
     def on_resize(self, event):
         width, height = event.size
