@@ -4,8 +4,7 @@
 
 import numpy as np
 import sys
-from vispy import gloo
-from vispy import app
+from vispy import gloo, app, visuals
 from vispy.util.transforms import perspective, translate, rotate
 from vispy.io import load_data_file
 from Bio.PDB.PDBParser import PDBParser
@@ -35,6 +34,8 @@ golden = np.array([0.75, 0.625, 0.38])
 atom_colors = {'H':white, 'C':carbon, 'N':sky, 'O':red, 'S':yellow, 'AU':golden}
 # Atom VdW radii
 vdw_radius = {'C':1.9080, 'N':1.8240, 'O':1.6612, 'S':2.0000, 'AU':1.37, 'H':1.0}
+
+backbone_atoms = ['N', 'CA', 'C', 'O', 'CB']
 
 vertex = """
 #version 120
@@ -139,7 +140,7 @@ class Canvas(app.Canvas):
         self.num_models = len(self.structure)
         self.model_colors = generate_colors_for_models(self.num_models)
 
-        self.atoms = [atom for atom in self.structure.get_atoms()] 
+        self.atoms = [atom for atom in self.structure.get_atoms()]
         self.coordinates = np.array([atom.coord for atom in self.atoms])
         self.center = centroid(self.coordinates)
         self.coordinates -= self.center
@@ -160,6 +161,8 @@ class Canvas(app.Canvas):
 
         gloo.set_state(depth_test=True, clear_color='black')
         self.timer = app.Timer('auto', connect=self.on_timer, start=True)
+
+        self.visuals = visuals.LineVisual(pos=self.bonds, width=5, method='gl')
 
         self.show()
 
@@ -185,6 +188,11 @@ class Canvas(app.Canvas):
         for atom in self.atoms:
             self.atomsScales.append(vdw_radius[atom.element])
         self.atomsScales = np.array(self.atomsScales)  #np.random.uniform(low=12.0, high=12.0, size=(self._nAtoms,))
+
+        lines = []
+        for i in range(100):
+            lines.append([self.coordinates[i], self.coordinates[i+1]])
+        self.bonds = np.array(lines)
 
     def load_data(self):
         n = self._nAtoms
@@ -253,6 +261,7 @@ class Canvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear()
+        #self.visuals.draw()
         self.program.draw('points')
 
 
