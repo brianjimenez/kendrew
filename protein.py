@@ -8,7 +8,8 @@ from atomic import *
 
 
 only_CA = False
-draw_bonds = True
+draw_bonds = False
+radii_ratio = 10.0
 
 
 vertex = """
@@ -142,7 +143,7 @@ a_data = np.zeros(len(colors), [("position", np.float32, 3),
 for i in range(len(colors)):
     a_data[i]['position'] = [coordinates[i][0], coordinates[i][1], coordinates[i][2]]
     a_data[i]['color'] = colors[i]
-    a_data[i]['radius'] = radius[i] / 20.
+    a_data[i]['radius'] = radius[i] / radii_ratio
 
 #a_data = np.load('./protein.npy')
 
