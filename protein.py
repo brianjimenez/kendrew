@@ -7,6 +7,10 @@ from Bio.PDB.PDBParser import PDBParser
 from atomic import *
 
 
+only_CA = False
+draw_bonds = True
+
+
 vertex = """
 uniform vec3 light_position;
 
@@ -34,18 +38,6 @@ void main (void)
     v_size = 512.0 * p.x / p.w;
     gl_PointSize = v_size;
 }
-"""
-
-"""
-uniform mat4 MV;                //modelview matrix
-uniform mat4 P;                 //projection matrix
-uniform float spriteWidth;      //object space width of sprite (maybe an per-vertex in)
-uniform float screenWidth;      //screen width in pixels
-
-vec4 eyePos = MV * vec4(pos.x, pos.y, 0.5, 1);
-vec4 projCorner = P * vec4(0.5*spriteWidth, 0.5*spriteWidth, eyePos.z, eyePos.w);
-gl_PointSize = screenWidth * projCorner.x / projCorner.w;
-gl_Position = P * eyePos;
 """
 
 fragment = """
@@ -88,6 +80,39 @@ void main()
 """
 
 
+line_shader = """
+#include "math/constants.glsl"
+
+attribute vec3 position;
+attribute vec3 color;
+
+varying float v_size;
+varying vec3 v_color;
+varying vec4 v_eye_position;
+
+void main (void) {
+    v_color = color;
+    v_eye_position = <transform.trackball_view> *
+                     <transform.trackball_model> *
+                     vec4(position,1.0);
+    gl_Position = <transform(position)>;
+    vec4 p = <transform.trackball_projection> *
+             vec4(1., 1., v_eye_position.z, v_eye_position.w);
+    v_size = 512.0 * p.x / p.w;
+    gl_PointSize = v_size;
+}
+"""
+
+line_fragment = """
+varying vec3 v_color;
+
+void main()
+{
+    gl_FragColor = vec4(v_color, 1);
+}
+"""
+
+
 window = app.Window(width=1600, height=1600, color=(1,1,1,1))
 
 protein = gloo.Program(vertex, fragment)
@@ -97,15 +122,18 @@ protein["transform"] = Trackball(Position())
 pdb_file_name = sys.argv[1]
 parser = PDBParser(QUIET=True, PERMISSIVE=True)
 structure = parser.get_structure('structure', pdb_file_name)
-atoms = [atom for atom in structure.get_atoms()]
+if only_CA:
+    atoms = [atom for atom in structure.get_atoms() if atom.id == 'CA']
+else:
+    atoms = [atom for atom in structure.get_atoms()]
 coordinates = np.array([atom.coord for atom in atoms])
 center = centroid(coordinates)
 coordinates -= center
 coordinates *= 0.05
 
 a_data = []
-colors = [ atom_colors[atom.element] for atom in atoms ]
-radius = [ vdw_radius[atom.element] for atom in atoms ]
+colors = [ atom_colors[atom.element] if atom_colors.has_key(atom.element) else white for atom in atoms ]
+radius = [ vdw_radius[atom.element] if vdw_radius.has_key(atom.element) else 1.0 for atom in atoms]
 
 a_data = np.zeros(len(colors), [("position", np.float32, 3),
                                 ("color",    np.float32, 4),
@@ -114,7 +142,7 @@ a_data = np.zeros(len(colors), [("position", np.float32, 3),
 for i in range(len(colors)):
     a_data[i]['position'] = [coordinates[i][0], coordinates[i][1], coordinates[i][2]]
     a_data[i]['color'] = colors[i]
-    a_data[i]['radius'] = radius[i] / 10.
+    a_data[i]['radius'] = radius[i] / 20.
 
 #a_data = np.load('./protein.npy')
 
@@ -122,14 +150,26 @@ protein.bind(a_data.view(gloo.VertexBuffer))
 protein['color'] *= .25
 protein['color'] += .75
 
+
+bonds = gloo.Program(line_shader, line_fragment)
+bonds["transform"] = protein["transform"]
+bonds.bind(a_data.view(gloo.VertexBuffer))
+bonds['color'] = protein['color']
+
+
 @window.event
 def on_draw(dt):
     window.clear()
     protein.draw(gl.GL_POINTS)
+    if draw_bonds:
+        bonds.draw(gl.GL_LINE_STRIP)
 
 @window.event
 def on_init():
     gl.glEnable(gl.GL_DEPTH_TEST)
+    gl.glEnable(gl.GL_LINE_SMOOTH)
+    gl.glLineWidth(50.0)
+
 
 window.attach(protein["transform"])
 app.run()
