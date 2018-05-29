@@ -16,6 +16,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("pdb_file", help="PDB file name")
 parser.add_argument('--ca', help='Display only CA atoms', action='store_true')
 parser.add_argument('--bonds', help='Draw atomic bonds', action='store_true')
+parser.add_argument('--chain', help='Display colors by chain', action='store_true')
+parser.add_argument('--model', help='Display colors by model number', action='store_true')
 args = parser.parse_args()
 
 # Read atomic information
@@ -38,7 +40,21 @@ protein['light_position'] = 0., 0., 2.
 protein["transform"] = Trackball(Position())
 
 a_data = []
-colors = [ atomic.get_atom_color(atom.element) for atom in atoms ]
+if args.chain:
+    colors = []
+    for atom in atoms:
+        residue = atom.get_parent()
+        chain = residue.get_parent()
+        colors.append(atomic.get_color_by_chain(chain.id))
+elif args.model:
+    colors = []
+    for atom in atoms:
+        residue = atom.get_parent()
+        chain = residue.get_parent()
+        model = chain.get_parent()
+        colors.append(atomic.get_color_by_model(model.id))
+else:
+    colors = [ atomic.get_atom_color(atom.element) for atom in atoms ]
 radius = [ atomic.get_vdw_radius(atom.element) for atom in atoms ]
 
 a_data = np.zeros(len(colors), [("position", np.float32, 3),

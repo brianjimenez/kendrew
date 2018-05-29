@@ -21,13 +21,30 @@ _dark_green = np.array([0.0, 0.46, 0.0, 1.0])
 _gray = np.array([0.59, 0.59, 0.59, 1.0])
 _dark_orange = np.array([0.86, 0.46, 0.0, 1.0])
 _golden = np.array([0.75, 0.625, 0.38, 1.0])
+_brown = np.array([0.4, 0.0, 0.0, 1.0])
+_turquoise = np.array([0.0, 0.78, 0.84, 1.0])
+_salmon = np.array([1.0, 0.75, 0.51, 1.0])
+_purple = np.array([0.35, 0.0, 0.59, 1.0])
+
+chain_colors = [_red, _blue, _sky, _yellow, _green, _pink, _dark_red, _violet,
+            _peach, _orange, _dark_violet, _cyan, _salmon, _golden, _dark_orange]
 
 # Atom colors
-_atom_colors = {'H':_white, 'C':_carbon, 'N':_sky, 'O':_red, 'S':_yellow, 'AU':_golden, 'ZN':_violet}
+_atom_colors = {'H':_white, 'C':_carbon, 'N':_sky, 'O':_red, 'S':_yellow, 'AU':_golden,
+                'ZN':_violet, 'F':_green, 'CL':_green, 'BR':_brown, 'I':_dark_violet,
+                'HE':_turquoise, 'NE':_turquoise, 'AR':_turquoise, 'XE':_turquoise,'KR':_turquoise,
+                'P':_orange, 'B':_salmon, 'LI':_purple, 'NA':_purple, 'K':_purple, 'RB':_purple, 'CS':_purple,
+                'BE':_dark_green, 'MG':_dark_green, 'SR':_dark_green, 'BA':_dark_green, 'RA':_dark_green,
+                'TI':_gray, 'FE':_dark_orange}
 _default_atom_color = _peach
 
 # Atom VdW radii
-_vdw_radius = {'C':1.9080, 'N':1.8240, 'O':1.6612, 'S':2.0000, 'AU':1.37, 'H':1.0, 'ZN':1.39}
+_vdw_radius = {'C':1.9080, 'N':1.8240, 'O':1.6612, 'S':2.0000, 'AU':1.37,
+               'H':1.0, 'ZN':1.39, 'F':1.47,'CL':1.75, 'BR':1.85, 'I':1.98,
+               'HE':1.40, 'NE':1.54, 'AR':1.88, 'XE':2.16, 'KR':2.02, 'P':1.8,
+               'S':1.8, 'B':1.92, 'LI':1.82, 'NA':2.27,'K':2.75,'RB':3.03,
+               'CS':3.43, 'BE':1.53, 'MG':1.73, 'Ca':2.31, 'SR':2.49, 'BA':2.68,
+               'RA':2.83}
 _default_vdw_radius = 1.5
 
 
@@ -54,3 +71,13 @@ def get_vdw_radius(atom_tyoe):
         return _vdw_radius[atom_type]
     except:
         return _default_vdw_radius
+
+
+def get_color_by_chain(chain_id):
+    """Get a color for this chain_id"""
+    return chain_colors[ord(chain_id) % 15]
+
+
+def get_color_by_model(model_id):
+    """Get a color for this model_id"""
+    return chain_colors[model_id % 15]
