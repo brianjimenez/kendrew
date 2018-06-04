@@ -77,7 +77,6 @@ def get_color_by_chain(chain_id):
     """Get a color for this chain_id"""
     return chain_colors[ord(chain_id) % 15]
 
-
 def get_color_by_model(model_id):
     """Get a color for this model_id"""
     return chain_colors[model_id % 15]

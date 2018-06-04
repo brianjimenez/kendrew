@@ -8,7 +8,7 @@ import kendrew.atomic as atomic
 from kendrew.shaders import dgoodsell, bonds
 
 
-_radii_ratio = 10.0
+_radii_ratio = 5.0
 
 
 # Get command line arguments
@@ -92,11 +92,15 @@ def on_init():
 
 @window.event
 def on_key_press(key, modifiers):
-    global protein
-    if key == 65:
+    global protein, _radii_ratio
+    if key == 65:	# A
         protein['color'] += .01
-    if key == 83:
+    if key == 83:	# S
         protein['color'] -= .01
-
+    if key == 88:	# Z
+        protein['radius'] -= 0.001
+    if key == 90:	# X
+        protein['radius'] += 0.001
+   	
 
 app.run()
