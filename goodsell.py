@@ -15,7 +15,6 @@ _radii_ratio = 5.0
 parser = argparse.ArgumentParser()
 parser.add_argument("pdb_file", help="PDB file name")
 parser.add_argument('--ca', help='Display only CA atoms', action='store_true')
-parser.add_argument('--bonds', help='Draw atomic bonds', action='store_true')
 parser.add_argument('--chain', help='Display colors by chain', action='store_true')
 parser.add_argument('--model', help='Display colors by model number', action='store_true')
 args = parser.parse_args()
@@ -81,8 +80,6 @@ window.attach(protein["transform"])
 def on_draw(dt):
     window.clear()
     protein.draw(gl.GL_POINTS)
-    if args.bonds:
-        bonds.draw(gl.GL_LINE_STRIP)
 
 @window.event
 def on_init():

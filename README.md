@@ -11,17 +11,19 @@ Visualizing molecules from Python.
 Requirements:
 
 * [VisPy](http://vispy.org/)
+* [GlumPy](https://github.com/glumpy/glumpy)
 * [BioPython](http://biopython.org/)
 * [NumPy](http://www.numpy.org/)
 
 Install them with pip:
 
-```
-$ pip3 install numpy vispy biopython
+```bash
+pip install numpy vispy biopython PyOpenGL
+pip install -U git+https://github.com/glumpy/glumpy@54a7eab7c08fb
 ```
 
 ## Running
 
-```
-$ python3 goodsell data/1e57.pdb --chain
+```bash
+python3 goodsell.py data/1e57.pdb --chain
 ```
